@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <dirent.h>
 #include <string>
+#include <typeinfo>
 
 #define PI 3.14159265359
 using namespace std;
@@ -220,20 +221,72 @@ vector<string> open1(string path){
 return files;
 }
 
+double predict(double w, double b,double x){
+// This function calculates the yhat value for a regression
+  return(w*x+b);
+}
+// This is the return type of the object
+struct ReturnObject{
+  double value1;
+  double value2;
+};
+
+ReturnObject LinearRegressor(const vector<float> &TrainingX, const vector<float> &TrainingY){
+  /* Stochastic Gradient descent algorithm is used to estimate the regression parameters*/
+  float alpha=pow(10,-5),p,err,a;
+  //vector<float> yhat;
+  // lets initialize the values of slope and bias term
+  
+  int m=TrainingX.size();                                       // Find the size of the vector
+  float w=0;                                                   // initialize slope
+  float b=0;                                                   // initialize bias term
+
+  for(int i = 0 ; i < (63 * pow(10,6)); i++){                // The loop passes through each training data to run the update, it has 1 million epochs 
+        int idx= i % m;                                       // This enables the code to go through each data file in the training set and update the weights based on data from  individual data observation
+
+        //float p= b + w * TrainingX[idx];
+
+          p= predict(w,b,TrainingX[idx]);
+
+
+          err = p - TrainingY[idx];
+
+          //cout<<err;
+          //cin>>a;
+
+        b = b- alpha *err;
+
+        w = w- alpha * err * TrainingX[idx] ;
+
+        if(i % 10000 ==0){
+
+         cout<<"W: "<<w<<">>>>>>>>>>>"<<"b: "<<b<<">>>>>>>>>>>"<<">>>>>>>>>>>"<<"error: "<<err<<endl;
+       }
+
+  }
+
+  ReturnObject result={w,b};
+
+  return(result);
+
+
+}
+
 ///////////////////////////??????????????**********************************************************/////////////////////////////
 
 int main()
 {
- int n_data = 1000, samprate = 2048, center_freq = 700, order = 512;
- vector<double> power;                                                              //declare vector variable PowerDB to store the power
- double temp,PowerDBtemp;                                                           // temporary folders
- vector<double> PowerDB;                                                           // storing the values of all the power
+ int n_data = 1000, samprate = 2048, center_freq = 500, order = 512;
+
+ vector<float> power;                                                              //declare vector variable PowerDB to store the power
+ float temp,PowerDBtemp, dist;                                                           // temporary folders
+ vector<float> PowerDB, distance;                                                           // storing the values of all the power
  vector<string> Filesdistance,DirectoryNames;
- string distance1File="C:\\Active_System\\Workspaces\\Data_Gopher\\DistanceData\\50m\\";              // path to folder 1
+ string distance1File="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\50m\\";              // path to folder 1
  DirectoryNames.push_back(distance1File);
- string distance2File="C:\\Active_System\\Workspaces\\Data_Gopher\\DistanceData\\100m\\";             // path to foldeer 2
+ string distance2File="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\100m\\";             // path to foldeer 2
   DirectoryNames.push_back(distance2File);
- string distance3File="C:\\Active_System\\Workspaces\\Data_Gopher\\DistanceData\\150m\\";             // path to folder 3
+ string distance3File="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\150m\\";             // path to folder 3
  DirectoryNames.push_back(distance3File);
  vector<string> ListString;                                                                          // this will be used to stored parsed strings
 
@@ -256,34 +309,35 @@ for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=Directory
       string Flag= ListString.back();                                                         // the last element  of the vector
 
       if(Flag=="50m"){
-        cout<<"Good news";
+        //cout<<"Good news";
 
-        pathName="C:\\Active_System\\Workspaces\\Data_Gopher\\DistanceData\\50m\\"; 
+        pathName="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\50m\\"; 
         Filesdistance= open1(pathName);                                              // collect the names of files at distance 50 m
+        dist=50;
+
+       // cout<< Filesdistance<<endl;
 
       }
+      
       else if(Flag=="100m"){
-       pathName="C:\\Active_System\\Workspaces\\Data_Gopher\\DistanceData\\100m\\"; 
+       pathName="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\100m\\"; 
         Filesdistance= open1(pathName);                                              // collect the names of files at distance 100 m
+        dist=100;
 
       }
       else{
-        pathName="C:\\Active_System\\Workspaces\\Data_Gopher\\DistanceData\\150m\\"; 
+        pathName="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\150m\\"; 
         Filesdistance= open1(pathName);                                              // collect the names of files at distance 150 m
+        dist=150;
 
       }
 
        
-       //Files2distance= open1(distance2File);                                              // collect the names of files at distance 100 m
-       //Files3distance= open1(distance3File);                                              // collect the names of files at distance 150 m
+       for(vector<string>::iterator itr= Filesdistance.begin()+2; itr != Filesdistance.end(); ++itr){               // we will iterate through each filename to esimate power of the the data
+    
+              
 
-       //Files1distance.insert(Files1distance.end(),Files2distance.begin()+2,Files2distance.end());   // concatenating all the folders in one vector so that they can be called using same function
-      // Files1distance.insert(Files1distance.end(),Files3distance.begin()+2,Files3distance.end());   // concatenating all vectors in one
-       
-      // LoadData(distance1File,fnm);  
-
-       for(vector<string>::iterator itr= Filesdistance.begin(); itr != Filesdistance.end(); itr++){               // we will iterate through each filename to esimate power of the the data
-        
+            //  cout<<*(itr)<<endl;    
 
 
               LoadData(pathName,*(itr));                                                                     // load the data
@@ -323,27 +377,31 @@ for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=Directory
 
               PowerDBtemp=  *max_element(power.begin(),power.end());                                      // finds the maximum element in the vector<float> variable
               PowerDB.push_back(10*  log10(PowerDBtemp));                                                       //Logarithm10 to convert power into decibels
+              distance.push_back(dist);
 
-              //cout<< "The power of the signal is :"<< PowerDB<<endl;                                      // power is stored in this variable
-
-             
+                       
             
-       }
-
-   
-
-       
+       }         
        
 }
 
+ReturnObject Parameters=LinearRegressor(PowerDB, distance);
 
-/* variable PowerDB will* will store the values of all the variables*/
+cout<<"The coefficients of Loclization models are:"<<Parameters.value1<<","<<Parameters.value2<<endl;
+
+
+// variable PowerDB will* will store the values of all the variables
+/*
 for(vector<double>::iterator iit= PowerDB.begin();iit != PowerDB.end();iit++){
 
         cout<<*(iit)<<" ";                                                                              //print the values of the power stored in a variable
        } 
-
+       cout<<endl;
        cout<<"The size of the power vector is:"<< PowerDB.size();
+       cout<<" Size of the distance:"<<distance.size()<<endl;
+
+*/
+
 return 0;
  
  }

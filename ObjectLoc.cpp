@@ -8,7 +8,6 @@
 #include <valarray>
 #include <vector>
 #include <algorithm>
-#include "boost/filesystem.hpp"
 
 #define PI 3.14159265359
 using namespace std;
@@ -134,7 +133,7 @@ int bandpass_symmetric_filter(float *data, int n_data, int samprate, int center_
 void LoadData()
 {
 
-  ifstream file("C:\\Active_System\\Workspaces\\Data_Gopher\\DistanceData\\50m\\DynData_7_11_17_14_21_5.dat");
+  ifstream file("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\50m\\DynData_7_11_17_14_21_5.dat");
  
   if(file.is_open())
   {
@@ -192,9 +191,8 @@ void fft(CArray& x)
     }
 }
 
-double PredictDist(double &Power){
+double PredictDist(double & Power, float & coeff, float & bias){
 
-  double bias=1.2, coeff=3.4;
  
   double distance = bias+ Power * coeff;
 
@@ -205,12 +203,13 @@ double PredictDist(double &Power){
 int main()
 {
  int n_data = 1000, samprate = 2048, center_freq = 700, order = 512;
+ float w,b;
  vector<double> power;                                                            //declare vector variable PowerDB to store the power
  double temp,PowerDB;
  
 
  LoadData();                                                                      // load the data
-  
+
  bandpass_symmetric_filter(dataObject1, n_data, samprate, center_freq, order);    // band pass filter   on channel 1 data
  
  bandpass_symmetric_filter(dataObject3, n_data, samprate, center_freq, order);    // band passs filter on channel 3 data
@@ -220,6 +219,7 @@ Complex Data3[1000];                                                            
 
 for(int i=0; i<1000;i++){
   Data1[i]= dataObject1[i];                                                          // convert a double[] array into Complex<double> datatype
+  //cout<<dataObject1[i]<<endl;
   Data3[i]= dataObject3[i];
 }
 
@@ -241,7 +241,7 @@ cout<<"FFT of Channel data3:"<< data1.size()<<endl;
  {
   temp=pow(data3[j].real(),2) + pow(data3[j].imag(),2);
   power.push_back(temp);
-  cout<< power[j]<<endl;
+  //cout<< power[j]<<endl;
  }
 
 PowerDB=  *max_element(power.begin(),power.end());                                      // finds the maximum element in the vector<float> variable
@@ -249,6 +249,15 @@ PowerDB= 10*  log10(PowerDB);                                                   
 
 cout<< "The power of the signal is :"<< PowerDB<<endl;                                      // power is stored in this variable
 
-cout<<"The distance is: "<< PredictDist(PowerDB)<<"meters";
+//cout<<"The distance is: "<< PredictDist(PowerDB)<<"meters";
+
+cout<< "Enter the Slope coefficient (w): ";
+cin>>w;
+cout<<endl;
+cout<< "Enter the Bias coefficient (w): ";
+cin>>b;
+cout<<endl;
+
+cout<<" Distance of the object is :"<< PredictDist(PowerDB,w,b)<<endl;
 return 0;
  }
