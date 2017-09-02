@@ -1,0 +1,7 @@
+
+
+Calculating that dominant frequency at any given rpm is straightforward. First, you convert engine rpm to Hertz, the frequency unit, with the following formula: 60 rpm = 1 revolution per second, or 1 Hz. Thus, a V-6 spinning at 1800 rpm can be said to be running at 30 Hz (1800/60 = 30).
+
+But because a four-stroke engine fires each cylinder only once every two crank revolutions, we’re only worried about half the engine’s cylinders. Multiply our 30-Hz value by three (the number of ignition events per crankshaft revolution for a six-cylinder engine) and you have the 90-Hz dominant frequency that defines the six-cylinder’s sound at 1800 rpm. As the engine speed increases, the firing frequency rises proportionally.
+
+http://www.caranddriver.com/features/this-is-why-various-engine-types-sound-so-different-feature

@@ -14,11 +14,11 @@
 
 #define PI 3.14159265359
 using namespace std;
- 
-const double PI1 = 3.141592653589793238460;
- 
 typedef std::complex<double> Complex;
 typedef std::valarray<Complex> CArray;
+
+ 
+
 
 
 // Declare the variables outside the main function
@@ -59,8 +59,8 @@ int bandpass_symmetric_filter(float *data, int n_data, int samprate, int center_
   float *filter_coeff, *hamming_wind, *temp_data,tmp;
   int nhlf,i,j,k;
 
-  lfreq = (center_freq-center_freq*0.35)/(0.5*samprate);
-  ufreq = (center_freq+center_freq*0.35)/(0.5*samprate);
+  lfreq = (center_freq-center_freq*0.4)/(0.5*samprate);
+  ufreq = (center_freq+center_freq*0.4)/(0.5*samprate);
 
 
   if(ufreq < lfreq || ufreq > 1 || lfreq < 0)
@@ -76,10 +76,6 @@ int bandpass_symmetric_filter(float *data, int n_data, int samprate, int center_
   fh = ufreq/2;
   nhlf = (order+1)/2;
   c1 = fh-fl;
-
-  //filter_coeff = calloc(order,sizeof(float)); this is for C
-  //hamming_wind = calloc(order,sizeof(float));
-  //temp_data = calloc(n_data,sizeof(float));
 
   filter_coeff= new float[order];
   hamming_wind= new float[order];
@@ -184,25 +180,43 @@ file.close();
 void fft(CArray& x)
 {
     const size_t N = x.size();
+    const double PI1 = 3.141592653589793238460;
     if (N <= 1) return;
  
     // divide
-    CArray even = x[std::slice(0, N/2, 2)];
-    CArray  odd = x[std::slice(1, N/2, 2)];
+    CArray even = x[slice(0, N/2, 2)];                        //This class represents a valarray slice selector. It does not contain nor refers to any element - 
+                                                              //it only describes a selection of elements to be used as an index in valarray::operator[].
+    CArray  odd = x[slice(1, N/2, 2)];
  
     // conquer
     fft(even);
     fft(odd);
+
+
  
     // combine
     for (size_t k = 0; k < N/2; ++k)
     {
-        Complex t = std::polar(1.0, -2 * PI1 * k / N) * odd[k];
+        Complex t = polar(1.0, -2 * PI1 * k / N) * odd[k];
         x[k    ] = even[k] + t;
         x[k+N/2] = even[k] - t;
     }
 }
 
+vector<float> PowerCalculation(CArray &data){
+  // This function calculates the power from FFT components
+
+  vector<float> power;
+  float temp1;
+
+                for(int j=0;j < data.size(); j++)
+               {
+                  temp1=pow(real(data[j]),2) + pow(imag(data[j]),2);
+                  power.push_back(temp1);
+
+              }
+              return(power);
+}
 
 // Lets open the names of all the files
 
@@ -221,10 +235,13 @@ vector<string> open1(string path){
 return files;
 }
 
-double predict(double w, double b,double x){
-// This function calculates the yhat value for a regression
-  return(w*x+b);
+double predict(double w, double b, float x){
+
+    return(w * (x) +b);
+
+  
 }
+
 // This is the return type of the object
 struct ReturnObject{
   double value1;
@@ -244,12 +261,9 @@ ReturnObject LinearRegressor(const vector<float> &TrainingX, const vector<float>
   for(int i = 0 ; i < (63 * pow(10,6)); i++){                // The loop passes through each training data to run the update, it has 1 million epochs 
         int idx= i % m;                                       // This enables the code to go through each data file in the training set and update the weights based on data from  individual data observation
 
-        //float p= b + w * TrainingX[idx];
+        p= b + w * TrainingX[idx];
 
-          p= predict(w,b,TrainingX[idx]);
-
-
-          err = p - TrainingY[idx];
+        err = p - TrainingY[idx];
 
           //cout<<err;
           //cin>>a;
@@ -261,6 +275,7 @@ ReturnObject LinearRegressor(const vector<float> &TrainingX, const vector<float>
         if(i % 10000 ==0){
 
          cout<<"W: "<<w<<">>>>>>>>>>>"<<"b: "<<b<<">>>>>>>>>>>"<<">>>>>>>>>>>"<<"error: "<<err<<endl;
+
        }
 
   }
@@ -272,136 +287,187 @@ ReturnObject LinearRegressor(const vector<float> &TrainingX, const vector<float>
 
 }
 
-///////////////////////////??????????????**********************************************************/////////////////////////////
+float* diff(float *power_data,int n){
 
-int main()
-{
- int n_data = 1000, samprate = 2048, center_freq = 500, order = 512;
+  // delete NewArray in client fucntion
+  float* NewArray=new float[n-1];
+  for(size_t i=0;i< n-1 ;i++){
+    *(NewArray + i)= power_data[i+1] - power_data[i];
+     
+  }
 
- vector<float> power;                                                              //declare vector variable PowerDB to store the power
- float temp,PowerDBtemp, dist;                                                           // temporary folders
- vector<float> PowerDB, distance;                                                           // storing the values of all the power
+  return(NewArray);
+
+ }
+
+///////////////////////////
+
+int main(){
+ int n_data = 1000, samprate = 2048, center_freq = 90, order = 512;
+float tempp;
+
+
+                                                           //declare vector variable PowerDB to store the power
+ float temp1,temp3,PowerDBtemp, dist;   
+ float *dt1 , *dt3;                                                       // temporary folders
+ vector<float> PowerDB, distance,predictedDistance;                                                           // storing the values of all the power
  vector<string> Filesdistance,DirectoryNames;
  string distance1File="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\50m\\";              // path to folder 1
  DirectoryNames.push_back(distance1File);
  string distance2File="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\100m\\";             // path to foldeer 2
-  DirectoryNames.push_back(distance2File);
+ DirectoryNames.push_back(distance2File);
  string distance3File="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\150m\\";             // path to folder 3
  DirectoryNames.push_back(distance3File);
- vector<string> ListString;                                                                          // this will be used to stored parsed strings
+ vector<string> ListString;         
+ vector<float> power1;  
 
-for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=DirectoryNames.end();tempitr++ ){
-        string tempdirectory= *(tempitr);
+ string token;
+ string pathName;                                                                                      // Will store the path to directory
+ string delimiter= "\\";                                                               // this will be used to stored parsed strings
 
-       
-      string token;
-      string pathName;                                                                                      // Will store the path to directory
-      string delimiter= "\\";
-
-      size_t pos=0;
-      while((pos=tempdirectory.find(delimiter)) != string::npos){
-        token = tempdirectory.substr(0, pos);                                                         // components that make the directory filename
+for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=DirectoryNames.end();++tempitr){
+	
+    string tempdirectory= *(tempitr);	
+	//cout<< tempdirectory<<endl;
+	
+	size_t pos=0;
+	while((pos=tempdirectory.find(delimiter)) != string::npos){
+		token = tempdirectory.substr(0, pos);                                                         // components that make the directory filename
         ListString.push_back(token);                                                                   // we will store all theese components in a directory
-        
-       tempdirectory.erase(0, pos + delimiter.length());
-      }
+        tempdirectory.erase(0, pos + delimiter.length());
+		}
+		 
+	string Flag= ListString.back();                                                         // the last element  of the vector
 
-      string Flag= ListString.back();                                                         // the last element  of the vector
-
-      if(Flag=="50m"){
-        //cout<<"Good news";
-
-        pathName="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\50m\\"; 
+    if(Flag=="50m"){
+		pathName="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\50m\\"; 
         Filesdistance= open1(pathName);                                              // collect the names of files at distance 50 m
         dist=50;
-
-       // cout<< Filesdistance<<endl;
-
-      }
-      
-      else if(Flag=="100m"){
+		}      
+    else if(Flag=="100m"){
        pathName="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\100m\\"; 
         Filesdistance= open1(pathName);                                              // collect the names of files at distance 100 m
         dist=100;
-
-      }
-      else{
-        pathName="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\150m\\"; 
+		}
+    else if(Flag=="150m"){
+		pathName="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\150m\\"; 
         Filesdistance= open1(pathName);                                              // collect the names of files at distance 150 m
         dist=150;
-
-      }
-
-       
-       for(vector<string>::iterator itr= Filesdistance.begin()+2; itr != Filesdistance.end(); ++itr){               // we will iterate through each filename to esimate power of the the data
-    
-              
-
-            //  cout<<*(itr)<<endl;    
-
-
-              LoadData(pathName,*(itr));                                                                     // load the data
-                
-              bandpass_symmetric_filter(dataObject1, n_data, samprate, center_freq, order);    // band pass filter   on channel 1 data
-               
-              bandpass_symmetric_filter(dataObject3, n_data, samprate, center_freq, order);    // band passs filter on channel 3 data
-
-              Complex Data1[1000];                                                            //placeholder to convert real data type double into complex; needs #include <complex>
-              Complex Data3[1000];                                                             //placeholder to convert real data type double into complex
-
-              for(int i=0; i<1000;i++){
-                Data1[i]= dataObject1[i];                                                          // convert a double[] array into Complex<double> datatype
-                Data3[i]= dataObject3[i];
-              }
-
-              CArray data1 (Data1, 1000);                                                        // convert data1 into Valarray<complex> datatype; needs valarray datatype
-              CArray data3 (Data3, 1000);                                                        // convert data3 into valarray<complex> datatype
-
-
-
-              // estimate the FFT of the signal
-
-              fft(data1);                                                                        // FFt of channel 1 
-
-              fft(data3);                                                                        // FFT of channel 3
-
-
-              //cout<<"FFT of Channel data3:"<< data1.size()<<endl;
-
-              for(int j=0;j < data1.size(); j++)
-               {
-                temp=pow(data3[j].real(),2) + pow(data3[j].imag(),2);
-                power.push_back(temp);
-               // cout<< power[j]<<endl;
-              }
-
-              PowerDBtemp=  *max_element(power.begin(),power.end());                                      // finds the maximum element in the vector<float> variable
-              PowerDB.push_back(10*  log10(PowerDBtemp));                                                       //Logarithm10 to convert power into decibels
-              distance.push_back(dist);
-
-                       
-            
-       }         
-       
-}
-
-ReturnObject Parameters=LinearRegressor(PowerDB, distance);
-
-cout<<"The coefficients of Loclization models are:"<<Parameters.value1<<","<<Parameters.value2<<endl;
-
-
-// variable PowerDB will* will store the values of all the variables
-/*
-for(vector<double>::iterator iit= PowerDB.begin();iit != PowerDB.end();iit++){
-
-        cout<<*(iit)<<" ";                                                                              //print the values of the power stored in a variable
-       } 
-       cout<<endl;
-       cout<<"The size of the power vector is:"<< PowerDB.size();
-       cout<<" Size of the distance:"<<distance.size()<<endl;
-
+		}
+	else{
+		cout<<"Error loading file";
+		break;
+		}
+/*		
+	for(size_t news=0;news< Filesdistance.size();news++){
+		cout<< Filesdistance[news]<<endl;
+	}
+	
 */
 
-return 0;
- 
- }
+    for(vector<string>::iterator itr= Filesdistance.begin()+2; itr != Filesdistance.end(); ++itr){  // we will iterate through each filename to esimate power of the the data
+        //cout<<*(itr)<<endl;
+		LoadData(pathName,*(itr));                                                                  // load the data
+                
+        bandpass_symmetric_filter(dataObject1, n_data, samprate, center_freq, order);    			// band pass filter   on channel 1 data
+        bandpass_symmetric_filter(dataObject3, n_data, samprate, center_freq, order);    			// band passs filter on channel 3 data
+		
+		//float* diff_dataObject1=diff(dataObject1,1000); 
+		//float* diff_dataObject3=diff(dataObject3,1000);
+
+      /*
+		
+	    ofstream arrayData_nonComplex1("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\arrayChannel_nonComplex1.txt",ios::out |ios::app);
+      ofstream arrayData_nonComplex3("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\arrayChannel_nonComplex3.txt",ios::out |ios::app);
+
+	    for(int k=0;k<1000;k++){
+			arrayData_nonComplex1 << dataObject1[k]<<" "; //Outputs array to txtFile
+	        arrayData_nonComplex3 << dataObject3[k]<<" ";
+	    }
+	    arrayData_nonComplex1<<endl;
+	    arrayData_nonComplex3<<endl;
+
+	    arrayData_nonComplex1.close();
+	    arrayData_nonComplex3.close();
+      */
+
+              
+        Complex Data1[1000];                                                            			//placeholder to convert real data type double into complex; needs #include <complex>
+        Complex Data3[1000];                                                            			//placeholder to convert real data type double into complex
+
+		for(int i=0; i< 1000;i++){
+			Data1[i]= dataObject1[i];                                             				    // convert a double[] array into Complex<double> datatype
+			Data3[i]= dataObject3[i];
+		}              
+        
+		CArray data1 (Data1,1000);                                                       			// convert data1 into Valarray<complex> datatype; needs valarray datatype
+	    CArray data3 (Data3,1000);                                                       			// convert data3 into valarray<complex> datatype
+
+        // This snippet is used to output the data to a text file
+
+    /*          
+		ofstream arrayData1("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\arrayChannel1.txt",ios::out |ios::app);
+		ofstream arrayData3("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\arrayChannel3.txt",ios::out |ios::app);
+		for(int k=0;k<1000;k++){
+			arrayData1<<data1[k]<<" "; //Outputs array to txtFile
+		    arrayData3<<data3[k]<<" ";
+			}
+		arrayData3<<endl;
+		arrayData1<<endl;
+
+		arrayData1.close();
+		arrayData3.close();
+     */         
+              
+        // estimate the FFT of the signal
+
+
+        fft(data1);                                                                        			// FFt of channel 1
+        fft(data3);                                                                        			// FFT of channel 3
+
+                                                                                    
+        // save the FFT data in a text file
+        ofstream FFTData1 ("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\FFTChannel1.txt",ios::out |ios::app);
+        ofstream FFTData3 ("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\FFTChannel3.txt",ios::out |ios::app);
+        for(int k=0;k<1000;k++){
+			FFTData1<<data1[k]<<" "; //Outputs array to txtFile
+            FFTData3<<data3[k]<<" ";
+			}
+        FFTData1<<endl;
+        FFTData3<<endl;
+
+        FFTData1.close();
+        FFTData3.close();   
+        
+        
+		power1=PowerCalculation(data1);			
+		// Save the power data in a text file
+        ofstream powerData1("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\PowerChannel1.txt",ios::out |ios::app);
+        for(vector<float>::iterator itr_k=power1.begin(); itr_k != power1.end();++itr_k){
+		      powerData1<< *itr_k <<" "; //Outputs array to txtFile
+			  }
+		powerData1<<endl;
+		powerData1.close();
+        
+	
+
+        PowerDBtemp=  *max_element(power1.begin(),power1.end());                                      // finds the maximum element in the vector<float> variable          
+        //cout<<10*  log10(PowerDBtemp)<<endl;
+        PowerDB.push_back(10*  log10(PowerDBtemp));                                                   //Logarithm10 to convert power into decibels
+        distance.push_back(dist);          
+        power1.clear();   
+
+      
+           
+       // delete[] diff_dataObject1,diff_dataObject3;
+		
+		}
+	}
+ReturnObject coefficient = LinearRegressor(PowerDB,distance);               // pass the elements for regression
+return(0);
+
+
+}
+        
+
+

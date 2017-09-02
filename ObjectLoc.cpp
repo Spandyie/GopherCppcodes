@@ -252,7 +252,7 @@ cout<< "The power of the signal is :"<< PowerDB<<endl;                          
 //cout<<"The distance is: "<< PredictDist(PowerDB)<<"meters";
 
 cout<< "Enter the Slope coefficient (w): ";
-cin>>w;
+cin>>w;9
 cout<<endl;
 cout<< "Enter the Bias coefficient (w): ";
 cin>>b;
