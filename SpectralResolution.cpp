@@ -11,16 +11,10 @@
 #include <dirent.h>
 #include <string>
 #include <typeinfo>
-
 #define PI 3.14159265359
 using namespace std;
 typedef std::complex<double> Complex;
 typedef std::valarray<Complex> CArray;
-
- 
-
-
-
 // Declare the variables outside the main function
 float dataObject1[1000];
 float dataObject2[1000];
@@ -30,9 +24,7 @@ float dataObject5[1000];
 float dataObject6[1000];
 float dataObject7[1000];
 float dataObject8[1000];
-
 // bandpass filtered obtained from Jeff
-
 int hamming(float *hamming_coeff, int order)
 {
   int i,nhlf;
@@ -126,9 +118,6 @@ int bandpass_symmetric_filter(float *data, int n_data, int samprate, int center_
   return 0;
 
 }
-
-
-
 void LoadData(string path, string  filename)
 {
 
@@ -138,9 +127,9 @@ void LoadData(string path, string  filename)
   Filename.append(filename);                                                           //name of the file
  //  cout<< Filename<<endl;
 
-  ifstream file(Filename.c_str());                                                    //c_str returns a const char* that points to a null-terminated string (i.e. a C-style string).
-                                                                                      //   It is useful when you want to pass the "contents"¹ of an std::string to a function that expects
-                                                                                      // to work with a C-style string.
+  ifstream file(Filename.c_str());                                              //c_str returns a const char* that points to a null-terminated string (i.e. a C-style string).
+                                                                                //   It is useful when you want to pass the "contents"¹ of an std::string to a function that expects
+                                                                                // to work with a C-style string.
  
   if(file.is_open())
   {
@@ -191,9 +180,6 @@ void fft(CArray& x)
     // conquer
     fft(even);
     fft(odd);
-
-
- 
     // combine
     for (size_t k = 0; k < N/2; ++k)
     {
@@ -208,12 +194,10 @@ vector<float> PowerCalculation(CArray &data){
 
   vector<float> power;
   float temp1;
-
                 for(int j=0;j < data.size(); j++)
                {
                   temp1=pow(real(data[j]),2) + pow(imag(data[j]),2);
                   power.push_back(temp1);
-
               }
               return(power);
 }
@@ -221,12 +205,9 @@ vector<float> PowerCalculation(CArray &data){
 // Lets open the names of all the files
 
 vector<string> open1(string path){
-
   DIR *dir;
-  
   dirent *pdir;
   vector<string> files;
-
   dir =opendir(path.c_str());
   while(pdir=readdir(dir))
 {
@@ -238,8 +219,7 @@ return files;
 double predict(double w, double b, float x){
 
     return(w * (x) +b);
-
-  
+ 
 }
 
 // This is the return type of the object
@@ -281,10 +261,7 @@ ReturnObject LinearRegressor(const vector<float> &TrainingX, const vector<float>
   }
 
   ReturnObject result={w,b};
-
   return(result);
-
-
 }
 
 float* diff(float *power_data,int n){
@@ -292,43 +269,35 @@ float* diff(float *power_data,int n){
   // delete NewArray in client fucntion
   float* NewArray=new float[n-1];
   for(size_t i=0;i< n-1 ;i++){
-    *(NewArray + i)= power_data[i+1] - power_data[i];
-     
+    *(NewArray + i)= power_data[i+1] - power_data[i];     
   }
-
   return(NewArray);
-
  }
-
 ///////////////////////////
-
 int main(){
  int n_data = 1000, samprate = 2048, center_freq = 90, order = 512;
-float tempp;
+                                                 
+//float PowerDBtemp;
+int dist;   
+//float *dt1 , *dt3;                                                       // temporary folders
+//vector<float> PowerDB, distance,predictedDistance;                                                           // storing the values of all the power
+vector<string> Filesdistance,DirectoryNames;
+string distance1File="50m\\";              // path to folder 1
+DirectoryNames.push_back(distance1File);
+string distance2File="100m\\";             // path to foldeer 2
+DirectoryNames.push_back(distance2File);
+string distance3File="150m\\";             // path to folder 3
+DirectoryNames.push_back(distance3File);
+vector<string> ListString;         
+vector<float> power1;  
 
-
-                                                           //declare vector variable PowerDB to store the power
- float temp1,temp3,PowerDBtemp, dist;   
- float *dt1 , *dt3;                                                       // temporary folders
- vector<float> PowerDB, distance,predictedDistance;                                                           // storing the values of all the power
- vector<string> Filesdistance,DirectoryNames;
- string distance1File="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\50m\\";              // path to folder 1
- DirectoryNames.push_back(distance1File);
- string distance2File="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\100m\\";             // path to foldeer 2
- DirectoryNames.push_back(distance2File);
- string distance3File="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\150m\\";             // path to folder 3
- DirectoryNames.push_back(distance3File);
- vector<string> ListString;         
- vector<float> power1;  
-
- string token;
- string pathName;                                                                                      // Will store the path to directory
- string delimiter= "\\";                                                               // this will be used to stored parsed strings
+string token;
+string pathName;                                                                                      // Will store the path to directory
+string delimiter= "\\";                                                               // this will be used to stored parsed strings
 
 for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=DirectoryNames.end();++tempitr){
 	
     string tempdirectory= *(tempitr);	
-	
 	size_t pos=0;
 	while((pos=tempdirectory.find(delimiter)) != string::npos){
 		token = tempdirectory.substr(0, pos);                                                         // components that make the directory filename
@@ -339,17 +308,17 @@ for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=Directory
 	string Flag= ListString.back();                                                         // the last element  of the vector
 
     if(Flag=="50m"){
-		pathName="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\50m\\"; 
+		pathName="50m\\"; 
         Filesdistance= open1(pathName);                                              // collect the names of files at distance 50 m
         dist=50;
 		}      
     else if(Flag=="100m"){
-       pathName="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\100m\\"; 
+       pathName="100m\\"; 
         Filesdistance= open1(pathName);                                              // collect the names of files at distance 100 m
         dist=100;
 		}
     else if(Flag=="150m"){
-		pathName="C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\150m\\"; 
+		pathName="150m\\"; 
         Filesdistance= open1(pathName);                                              // collect the names of files at distance 150 m
         dist=150;
 		}
@@ -379,23 +348,21 @@ for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=Directory
         
 		CArray data1 (Data1,999);                                                       			// convert data1 into Valarray<complex> datatype; needs valarray datatype
 	    CArray data3 (Data3,999);                                                       			// convert data3 into valarray<complex> datatype
-
+		
         fft(data1);                                                                        			// FFt of channel 1
         fft(data3);                                                                        			// FFT of channel 3
 		
 		// write the distance to a seperate file
-		ofstream distObject("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\distance.txt",ios::out |ios::app);
-		for(size_t new_i=0; new_i<999; new_i++){
-			distObject << dist<<endl;
-		}
+		ofstream distObject("distance.txt",ios::out |ios::app);
+		distObject << dist<<endl;
 		distObject.close();
 		
 		//distance.push_back(dist); 
 
-                                                                                    
+                                                                                   
         // save the FFT data in a text file
-        ofstream FFTData1("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\FFTChannel1.txt",ios::out |ios::app);
-        ofstream FFTData3("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\FFTChannel3.txt",ios::out |ios::app);
+        ofstream FFTData1("FFTChannel1.txt",ios::out |ios::app);
+        ofstream FFTData3("FFTChannel3.txt",ios::out |ios::app);
         for(int k=0;k<999;k++){
 			FFTData1<<data1[k]<<" "; //Outputs array to txtFile
             FFTData3<<data3[k]<<" ";
@@ -405,7 +372,6 @@ for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=Directory
 
         FFTData1.close();
         FFTData3.close();   
-       	
 		delete[] diff_dataObject1,diff_dataObject3;
 		}
 	}

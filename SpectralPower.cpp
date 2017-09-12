@@ -123,12 +123,17 @@ ReturnObject LinearRegressor(const vector<double> &TrainingX, const vector<doubl
   return(result);
 }
 
+double PredictDist(double & Power, double & coeff, double & bias){ 
+  double distance = bias+ Power * coeff;
+  return distance;
+}
+
 
 int main(){
 	double temp,PowerDBtemp;
 	vector<Point> tempVector;
 	vector<vector<double> > PowerTotal;
-	vector<double> power,PowerDB;
+	vector<double> power,PowerDB, distance_hat;
 
 	vector<vector<Point> > FFTfile=LoadFFT("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\");
 	vector<double> dist=LoadDistance("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\");
@@ -147,10 +152,31 @@ int main(){
 	}
 	
 	ReturnObject prediction= LinearRegressor(PowerDB, dist);										// Calls the gradient descent for regression
-	/*
+	
 	for(vector<double>::iterator itr=PowerDB.begin(); itr!= PowerDB.end(); ++itr){
-		cout<< *itr<<" ";
+		 
+		distance_hat.push_back(PredictDist(*itr,prediction.value1 , prediction.value2));		
 	}
+
+	ofstream distance_output("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\Predicted_distance.txt");
+	ostream_iterator<double> output_iterator(distance_output, "\n");
+	copy(distance_hat.begin(), distance_hat.end(), output_iterator);
+/*	
+	auto ItA = VectorA.begin();
+auto ItB = VectorB.begin();
+
+while(ItA != VectorA.end() || ItB != VectorB.end())
+{
+    if(ItA != VectorA.end())
+    {
+        ++ItA;
+    }
+    if(ItB != VectorB.end())
+    {
+        ++ItB;
+    }
+}
+	
 	*/
 	return(0);
 }
