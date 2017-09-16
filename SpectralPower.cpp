@@ -158,7 +158,7 @@ int main(){
 		distance_hat.push_back(PredictDist(*itr,prediction.value1 , prediction.value2));		
 	}
 
-	ofstream distance_output("C:\\Users\\Spandan Mishra\\Documents\\GitHub\\GopherCppcodes\\Predicted_distance.txt");
+	ofstream distance_output("Predicted_distance.txt");
 	ostream_iterator<double> output_iterator(distance_output, "\n");
 	copy(distance_hat.begin(), distance_hat.end(), output_iterator);
 /*	

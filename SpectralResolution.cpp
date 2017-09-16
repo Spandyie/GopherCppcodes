@@ -111,14 +111,11 @@ int bandpass_symmetric_filter(float *data, int n_data, int samprate, int center_
     data[k] = tmp;
   }
 
-  free(filter_coeff);
-  free(hamming_wind);
-  free(temp_data);
-  //cout<< "Data Filtered"<< endl;
+  delete[] filter_coeff, hamming_wind, temp_data;
   return 0;
 
 }
-void LoadData(string path, string  filename)
+void LoadData(const string & path, const string & filename)
 {
 
   string Filename;                                                                    // placeholder for the file
@@ -133,10 +130,7 @@ void LoadData(string path, string  filename)
  
   if(file.is_open())
   {
-   
 
- // cout<<" File opened sucessfully!! now reading the data"<<endl;
-    
   for(int i=0;i<8000;i++)          //8000 is the toal number of data present
     {                              // reads all data that is not end of file
       file >> dataObject1[i];      // column 1
@@ -147,8 +141,6 @@ void LoadData(string path, string  filename)
       file >> dataObject6[i];
       file >> dataObject7[i];
       file >> dataObject8[i];
-
-      i++;
     }
  }
 
@@ -169,7 +161,7 @@ file.close();
 void fft(CArray& x)
 {
     const size_t N = x.size();
-    const double PI1 = 3.141592653589793238460;
+    const float PI1 = 3.141592;
     if (N <= 1) return;
  
     // divide
@@ -183,7 +175,7 @@ void fft(CArray& x)
     // combine
     for (size_t k = 0; k < N/2; ++k)
     {
-        Complex t = polar(1.0, -2 * PI1 * k / N) * odd[k];
+        Complex t = polar(1.0, -2 * PI * k / N) * odd[k];
         x[k    ] = even[k] + t;
         x[k+N/2] = even[k] - t;
     }
@@ -208,7 +200,7 @@ vector<string> open1(string path){
   DIR *dir;
   dirent *pdir;
   vector<string> files;
-  dir =opendir(path.c_str());
+  dir = opendir(path.c_str());
   while(pdir=readdir(dir))
 {
  files.push_back(pdir->d_name);
@@ -216,53 +208,6 @@ vector<string> open1(string path){
 return files;
 }
 
-double predict(double w, double b, float x){
-
-    return(w * (x) +b);
- 
-}
-
-// This is the return type of the object
-struct ReturnObject{
-  double value1;
-  double value2;
-};
-
-ReturnObject LinearRegressor(const vector<float> &TrainingX, const vector<float> &TrainingY){
-  /* Stochastic Gradient descent algorithm is used to estimate the regression parameters*/
-  float alpha=pow(10,-5),p,err,a;
-  //vector<float> yhat;
-  // lets initialize the values of slope and bias term
-  
-  int m=TrainingX.size();                                       // Find the size of the vector
-  float w=0;                                                   // initialize slope
-  float b=0;                                                   // initialize bias term
-
-  for(int i = 0 ; i < (63 * pow(10,6)); i++){                // The loop passes through each training data to run the update, it has 1 million epochs 
-        int idx= i % m;                                       // This enables the code to go through each data file in the training set and update the weights based on data from  individual data observation
-
-        p= b + w * TrainingX[idx];
-
-        err = p - TrainingY[idx];
-
-          //cout<<err;
-          //cin>>a;
-
-        b = b- alpha *err;
-
-        w = w- alpha * err * TrainingX[idx] ;
-
-        if(i % 10000 ==0){
-
-         cout<<"W: "<<w<<">>>>>>>>>>>"<<"b: "<<b<<">>>>>>>>>>>"<<">>>>>>>>>>>"<<"error: "<<err<<endl;
-
-       }
-
-  }
-
-  ReturnObject result={w,b};
-  return(result);
-}
 
 float* diff(float *power_data,int n){
 
@@ -277,10 +222,8 @@ float* diff(float *power_data,int n){
 int main(){
  int n_data = 1000, samprate = 2048, center_freq = 90, order = 512;
                                                  
-//float PowerDBtemp;
+
 int dist;   
-//float *dt1 , *dt3;                                                       // temporary folders
-//vector<float> PowerDB, distance,predictedDistance;                                                           // storing the values of all the power
 vector<string> Filesdistance,DirectoryNames;
 string distance1File="50m\\";              // path to folder 1
 DirectoryNames.push_back(distance1File);
@@ -291,11 +234,10 @@ DirectoryNames.push_back(distance3File);
 vector<string> ListString;         
 vector<float> power1;  
 
-string token;
-string pathName;                                                                                      // Will store the path to directory
+string token, pathName, temp_string;                                                                                      // Will store the path to directory
 string delimiter= "\\";                                                               // this will be used to stored parsed strings
 
-for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=DirectoryNames.end();++tempitr){
+for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=DirectoryNames.end(); ++tempitr){
 	
     string tempdirectory= *(tempitr);	
 	size_t pos=0;
@@ -328,8 +270,8 @@ for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=Directory
 		}
 
     for(vector<string>::iterator itr= Filesdistance.begin()+2; itr != Filesdistance.end(); ++itr){  // we will iterate through each filename to esimate power of the the data
-        //cout<<*(itr)<<endl;
-		LoadData(pathName,*(itr));                                                                  // load the data
+        temp_string= *itr;
+		LoadData(pathName,temp_string);                                                                  // load the data
                 
         bandpass_symmetric_filter(dataObject1, n_data, samprate, center_freq, order);    			// band pass filter   on channel 1 data
         bandpass_symmetric_filter(dataObject3, n_data, samprate, center_freq, order);    			// band passs filter on channel 3 data
@@ -369,7 +311,6 @@ for(vector<string>::iterator tempitr=DirectoryNames.begin(); tempitr !=Directory
 			}
         FFTData1<<endl;
         FFTData3<<endl;
-
         FFTData1.close();
         FFTData3.close();   
 		delete[] diff_dataObject1,diff_dataObject3;
